@@ -1,0 +1,1903 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const FarmerApp());
+}
+
+// ===================================================
+// Models
+// ===================================================
+enum AppointmentStatus { pending, approved, completed }
+
+String statusLabel(AppointmentStatus s) {
+  switch (s) {
+    case AppointmentStatus.pending:
+      return 'Pending';
+    case AppointmentStatus.approved:
+      return 'Approved';
+    case AppointmentStatus.completed:
+      return 'Completed';
+  }
+}
+
+Color statusColor(AppointmentStatus s) {
+  switch (s) {
+    case AppointmentStatus.pending:
+      return const Color(0xFFF6C343); // yellow
+    case AppointmentStatus.approved:
+      return const Color(0xFF4CAF50); // green
+    case AppointmentStatus.completed:
+      return const Color(0xFF4CAF50); // green
+  }
+}
+
+class Appointment {
+  final String id;
+  final String? warehouseName;
+  final AppointmentStatus status;
+
+  final String? date; // YYYY-MM-DD
+  final String? time; // 10:00 AM / 10:00 PM
+  final String? location; // address
+  final String? quantity; // "500 kg"
+
+  final String? adminName;
+  final String? adminPhone;
+  final String? adminEmail;
+
+  const Appointment({
+    required this.id,
+    required this.status,
+    this.warehouseName,
+    this.date,
+    this.time,
+    this.location,
+    this.quantity,
+    this.adminName,
+    this.adminPhone,
+    this.adminEmail,
+  });
+
+  Appointment copyWith({
+    String? warehouseName,
+    AppointmentStatus? status,
+    String? date,
+    String? time,
+    String? location,
+    String? quantity,
+    String? adminName,
+    String? adminPhone,
+    String? adminEmail,
+  }) {
+    return Appointment(
+      id: id,
+      status: status ?? this.status,
+      warehouseName: warehouseName ?? this.warehouseName,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      location: location ?? this.location,
+      quantity: quantity ?? this.quantity,
+      adminName: adminName ?? this.adminName,
+      adminPhone: adminPhone ?? this.adminPhone,
+      adminEmail: adminEmail ?? this.adminEmail,
+    );
+  }
+}
+
+class FarmerProfile {
+  final String? fullName;
+  final String? email;
+  final String? phone;
+  final String? farmName;
+
+  const FarmerProfile({
+    this.fullName,
+    this.email,
+    this.phone,
+    this.farmName,
+  });
+}
+
+// ===================================================
+// Repositories (Mock - replace with DB later)
+// ===================================================
+abstract class ProfileRepository {
+  Future<FarmerProfile?> fetchProfile();
+  Future<void> saveProfile(FarmerProfile profile);
+}
+
+class MockProfileRepository implements ProfileRepository {
+  // ✅ معمر بيانات كيما جاية من DB
+  FarmerProfile? _cache = const FarmerProfile(
+    fullName: 'Amina Boukercha',
+    email: 'aminaboukercha16@gmail.com',
+    phone: '+213 555 000 111',
+    farmName: 'Green Valley Farm',
+  );
+
+  @override
+  Future<FarmerProfile?> fetchProfile() async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    return _cache;
+  }
+
+  @override
+  Future<void> saveProfile(FarmerProfile profile) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    _cache = profile;
+  }
+}
+
+abstract class AppointmentsRepository {
+  Future<List<Appointment>> fetchUpcoming();
+  Future<List<Appointment>> fetchHistory();
+  Future<void> cancelAppointment(String id);
+  Future<void> updateAppointment(Appointment updated);
+}
+
+class MockAppointmentsRepository implements AppointmentsRepository {
+  // ✅ معمر بيانات كيما DB
+  List<Appointment> _upcoming = const [
+    Appointment(
+      id: 'a1',
+      status: AppointmentStatus.pending,
+      warehouseName: 'Warehouse El Harrach',
+      date: '2026-01-05',
+      time: '10:00 AM',
+      location: 'Algiers, El Harrach, Rue 12',
+      quantity: '500 kg',
+      adminName: 'M. Karim',
+      adminPhone: '+213 555 123 456',
+      adminEmail: 'karim@agristore.com',
+    ),
+    Appointment(
+      id: 'a2',
+      status: AppointmentStatus.approved,
+      warehouseName: 'Warehouse Blida',
+      date: '2026-01-12',
+      time: '02:30 PM',
+      location: 'Blida, Zone Industrielle',
+      quantity: '1 ton',
+      adminName: 'Mme Sara',
+      adminPhone: '+213 770 987 654',
+      adminEmail: 'sara@agristore.com',
+    ),
+  ];
+
+  List<Appointment> _history = const [
+    Appointment(
+      id: 'h1',
+      status: AppointmentStatus.completed,
+      warehouseName: 'Warehouse Boumerdes',
+      date: '2025-12-10',
+      time: '11:15 AM',
+      location: 'Boumerdes, Centre',
+      quantity: '300 kg',
+      adminName: 'M. Yacine',
+      adminPhone: '+213 661 222 333',
+      adminEmail: 'yacine@agristore.com',
+    ),
+    Appointment(
+      id: 'h2',
+      status: AppointmentStatus.completed,
+      warehouseName: 'Warehouse Oran',
+      date: '2025-11-22',
+      time: '03:45 PM',
+      location: 'Oran, Akid Lotfi',
+      quantity: '750 kg',
+      adminName: 'Mme Lina',
+      adminPhone: '+213 697 888 999',
+      adminEmail: 'lina@agristore.com',
+    ),
+  ];
+
+  @override
+  Future<List<Appointment>> fetchUpcoming() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _upcoming;
+  }
+
+  @override
+  Future<List<Appointment>> fetchHistory() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _history;
+  }
+
+  @override
+  Future<void> cancelAppointment(String id) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    _upcoming = _upcoming.where((a) => a.id != id).toList();
+  }
+
+  @override
+  Future<void> updateAppointment(Appointment updated) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _upcoming = _upcoming.map((a) => a.id == updated.id ? updated : a).toList();
+    _history = _history.map((a) => a.id == updated.id ? updated : a).toList();
+  }
+}
+
+final profileRepo = MockProfileRepository();
+final appointmentsRepo = MockAppointmentsRepository();
+
+// ===================================================
+// App
+// ===================================================
+class FarmerApp extends StatelessWidget {
+  const FarmerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'AgriStore Farmer',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      home: const FarmerMainScreen(),
+    );
+  }
+}
+
+// ============================================
+// Main Screen with Bottom Navigation
+// ============================================
+class FarmerMainScreen extends StatefulWidget {
+  const FarmerMainScreen({super.key});
+
+  @override
+  State<FarmerMainScreen> createState() => _FarmerMainScreenState();
+}
+
+class _FarmerMainScreenState extends State<FarmerMainScreen> {
+  int _currentIndex = 0;
+  bool isDarkMode = true;
+
+  final List<Widget> _screens = [];
+
+  void _goToTab(int index) => setState(() => _currentIndex = index);
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildScreens();
+  }
+
+  void _toggleTheme(bool v) {
+    setState(() {
+      isDarkMode = v;
+      _rebuildScreens();
+    });
+  }
+
+  void _rebuildScreens() {
+    _screens
+      ..clear()
+      ..addAll([
+        DashboardScreen(
+          isDarkMode: isDarkMode,
+          onThemeChanged: _toggleTheme,
+          goToTab: _goToTab,
+          profileRepo: profileRepo,
+          appointmentsRepo: appointmentsRepo,
+        ),
+        AppointmentsScreen(
+          isDarkMode: isDarkMode,
+          onThemeChanged: _toggleTheme,
+          repo: appointmentsRepo,
+        ),
+        HistoryScreen(
+          isDarkMode: isDarkMode,
+          onThemeChanged: _toggleTheme,
+          repo: appointmentsRepo,
+        ),
+        AccountScreen(
+          isDarkMode: isDarkMode,
+          onThemeChanged: _toggleTheme,
+          repo: profileRepo,
+        ),
+      ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor:
+          isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFFFFF8E7),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFF2E7D32),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12), blurRadius: 10)
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor:
+              isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFF2E7D32),
+          selectedItemColor:
+              isDarkMode ? const Color(0xFF4CAF50) : Colors.white,
+          unselectedItemColor: Colors.white60,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_month), label: 'Appointments'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.history), label: 'History'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// Header
+// ============================================
+class AppHeader extends StatelessWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  final ProfileRepository profileRepo;
+
+  const AppHeader({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+    required this.profileRepo,
+  });
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('هل تريد تسجيل الخروج؟'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Logout')),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('✅ Logged out')));
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+          color:
+              isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFF2E7D32)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.warehouse, color: Color(0xFFFFC107)),
+              SizedBox(width: 10),
+              Text('AgriStore',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20)),
+            ],
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => onThemeChanged(!isDarkMode),
+                icon: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                    color: Colors.white),
+              ),
+              PopupMenuButton<String>(
+                position: PopupMenuPosition.under,
+                offset: const Offset(0, 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                icon: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.grey[300],
+                  child: Text('100×100',
+                      style: TextStyle(fontSize: 7, color: Colors.grey[600])),
+                ),
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountScreen(
+                          isDarkMode: isDarkMode,
+                          onThemeChanged: onThemeChanged,
+                          repo: profileRepo,
+                        ),
+                      ),
+                    );
+                  } else if (value == 'logout') {
+                    _confirmLogout(context);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline),
+                        SizedBox(width: 10),
+                        Text('Profile'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text('Logout', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ===================================================
+// Shared helper: framed value + hint
+// ===================================================
+class FramedValueWithHint extends StatelessWidget {
+  final bool isDark;
+  final String value;
+  final String hint;
+  final VoidCallback? onTap;
+
+  const FramedValueWithHint({
+    super.key,
+    required this.isDark,
+    required this.value,
+    required this.hint,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final display = value.trim().isEmpty ? '—' : value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C2E) : const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: isDark ? Colors.white12 : Colors.black12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    display,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (onTap != null)
+                  Icon(Icons.edit,
+                      size: 16,
+                      color: isDark ? Colors.white54 : Colors.black45),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          hint,
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black45,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ✅ show() مع placeholder
+String show(String? s, {String empty = '—'}) =>
+    (s == null || s.trim().isEmpty) ? empty : s;
+
+// ============================================
+// Dashboard
+// ============================================
+class DashboardScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  final void Function(int) goToTab;
+
+  final ProfileRepository profileRepo;
+  final AppointmentsRepository appointmentsRepo;
+
+  const DashboardScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+    required this.goToTab,
+    required this.profileRepo,
+    required this.appointmentsRepo,
+  });
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _loading = true;
+  String _name = '';
+  Appointment? _next;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final p = await widget.profileRepo.fetchProfile();
+    final up = await widget.appointmentsRepo.fetchUpcoming();
+
+    if (!mounted) return;
+    setState(() {
+      _name = (p?.fullName ?? '').trim();
+      _next = up.isNotEmpty ? up.first : null;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return Column(
+      children: [
+        AppHeader(
+          isDarkMode: isDarkMode,
+          onThemeChanged: widget.onThemeChanged,
+          profileRepo: widget.profileRepo,
+        ),
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(22),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4CAF50), Color(0xFFE6D65C)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 42,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.45),
+                                child: Text('100×100',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.grey[700])),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Welcome back,',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600)),
+                                    Text(
+                                      _name.isEmpty ? 'Farmer!' : '$_name!',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                        'Manage your warehouse\nappointments',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => widget.goToTab(1),
+                          child: _actionCard(
+                            isDarkMode: isDarkMode,
+                            leftBorderColor: const Color(0xFFFF9800),
+                            icon: Icons.add,
+                            iconColor: const Color(0xFFFF9800),
+                            title: 'Request Appointment',
+                            subtitle: 'Schedule a new warehouse visit',
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => widget.goToTab(1),
+                          child: _actionCard(
+                            isDarkMode: isDarkMode,
+                            leftBorderColor: const Color(0xFF4CAF50),
+                            icon: Icons.calendar_today,
+                            iconColor: const Color(0xFF4CAF50),
+                            title: 'View Appointments',
+                            subtitle: 'Check your scheduled visits',
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF2d2d44)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Next Appointment',
+                                  style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 14),
+                              _dashboardLine(
+                                  isDarkMode,
+                                  Icons.calendar_today,
+                                  'Date',
+                                  show(_next?.date),
+                                  'Format: YYYY-MM-DD (Year-Month-Day)'),
+                              const SizedBox(height: 10),
+                              _dashboardLine(
+                                  isDarkMode,
+                                  Icons.access_time,
+                                  'Time',
+                                  show(_next?.time),
+                                  'Example: 10:00 AM / 10:00 PM'),
+                              const SizedBox(height: 10),
+                              _dashboardLine(
+                                  isDarkMode,
+                                  Icons.location_on,
+                                  'Location',
+                                  show(_next?.location),
+                                  'Example: City, Street, Area'),
+                              const SizedBox(height: 14),
+                              if (_next != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                      color: statusColor(_next!.status),
+                                      borderRadius: BorderRadius.circular(999)),
+                                  child: Text(statusLabel(_next!.status),
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                )
+                              else
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white12,
+                                      borderRadius: BorderRadius.circular(999)),
+                                  child: const Text('—',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              const SizedBox(height: 14),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 46,
+                                child: ElevatedButton(
+                                  onPressed: _next == null
+                                      ? null
+                                      : () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  AppointmentDetailsScreen(
+                                                isDarkMode: isDarkMode,
+                                                appointment: _next!,
+                                                repo: widget.appointmentsRepo,
+                                              ),
+                                            ),
+                                          ).then((_) => _load());
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF9800),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  child: const Text('View Details',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dashboardLine(
+      bool isDark, IconData icon, String label, String value, String hint) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 70,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(label,
+                style:
+                    TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+          ),
+        ),
+        Expanded(
+          child: FramedValueWithHint(isDark: isDark, value: value, hint: hint),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionCard({
+    required bool isDarkMode,
+    required Color leftBorderColor,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border(left: BorderSide(color: leftBorderColor, width: 4)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, color: iconColor, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(subtitle,
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white60 : Colors.black54)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================
+// Appointments Screen
+// ============================================
+class AppointmentsScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  final AppointmentsRepository repo;
+
+  const AppointmentsScreen(
+      {super.key,
+      required this.isDarkMode,
+      required this.onThemeChanged,
+      required this.repo});
+
+  @override
+  State<AppointmentsScreen> createState() => _AppointmentsScreenState();
+}
+
+class _AppointmentsScreenState extends State<AppointmentsScreen> {
+  bool _loading = true;
+  List<Appointment> _items = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final list = await widget.repo.fetchUpcoming();
+    if (!mounted) return;
+    setState(() {
+      _items = list;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+
+    return Column(
+      children: [
+        AppHeader(
+          isDarkMode: isDarkMode,
+          onThemeChanged: widget.onThemeChanged,
+          profileRepo: profileRepo,
+        ),
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Appointments',
+                            style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: textColor)),
+                        const SizedBox(height: 16),
+                        if (_items.isEmpty)
+                          Text('No appointments yet',
+                              style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white60
+                                      : Colors.black54))
+                        else
+                          ..._items.map(
+                            (a) => Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(18),
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AppointmentDetailsScreen(
+                                          isDarkMode: isDarkMode,
+                                          appointment: a,
+                                          repo: widget.repo),
+                                    ),
+                                  );
+                                  _load();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: BoxDecoration(
+                                    color: isDarkMode
+                                        ? const Color(0xFF2d2d44)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                        color: isDarkMode
+                                            ? Colors.white12
+                                            : Colors.black12),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(show(a.warehouseName),
+                                                style: TextStyle(
+                                                    color: textColor,
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 14, vertical: 8),
+                                            decoration: BoxDecoration(
+                                                color: statusColor(a.status),
+                                                borderRadius:
+                                                    BorderRadius.circular(999)),
+                                            child: Text(statusLabel(a.status),
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _line(
+                                          isDarkMode,
+                                          Icons.calendar_today,
+                                          'Date',
+                                          show(a.date),
+                                          'Format: YYYY-MM-DD (Year-Month-Day)'),
+                                      const SizedBox(height: 10),
+                                      _line(
+                                          isDarkMode,
+                                          Icons.access_time,
+                                          'Time',
+                                          show(a.time),
+                                          'Example: 10:00 AM / 10:00 PM'),
+                                      const SizedBox(height: 10),
+                                      _line(
+                                          isDarkMode,
+                                          Icons.location_on,
+                                          'Location',
+                                          show(a.location),
+                                          'Example: City, Street, Area'),
+                                      const SizedBox(height: 10),
+                                      _line(
+                                          isDarkMode,
+                                          Icons.scale,
+                                          'Quantity',
+                                          show(a.quantity),
+                                          'Write with unit: 500 kg'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _line(
+      bool isDark, IconData icon, String label, String value, String hint) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 70,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(label,
+                style:
+                    TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+          ),
+        ),
+        Expanded(
+          child: FramedValueWithHint(isDark: isDark, value: value, hint: hint),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================
+// Appointment Details
+// ============================================
+class AppointmentDetailsScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final Appointment appointment;
+  final AppointmentsRepository repo;
+
+  const AppointmentDetailsScreen(
+      {super.key,
+      required this.isDarkMode,
+      required this.appointment,
+      required this.repo});
+
+  @override
+  State<AppointmentDetailsScreen> createState() =>
+      _AppointmentDetailsScreenState();
+}
+
+class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
+  bool _canceling = false;
+  late Appointment _a;
+
+  @override
+  void initState() {
+    super.initState();
+    _a = widget.appointment;
+  }
+
+  Future<String?> _askText(String title, String initial,
+      {TextInputType keyboard = TextInputType.text}) async {
+    final isPlaceholder = initial == '—' || initial.startsWith('Tap to add');
+    final c = TextEditingController(text: isPlaceholder ? '' : initial);
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          keyboardType: keyboard,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Save')),
+        ],
+      ),
+    );
+    return ok == true ? c.text.trim() : null;
+  }
+
+  Future<void> _update(Appointment updated) async {
+    await widget.repo.updateAppointment(updated);
+    if (!mounted) return;
+    setState(() => _a = updated);
+  }
+
+  Future<void> _setDate() async {
+    final now = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 2),
+      initialDate: now,
+    );
+    if (d == null) return;
+
+    final formatted =
+        "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
+    await _update(_a.copyWith(date: formatted));
+  }
+
+  Future<void> _setTime() async {
+    final t = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (t == null) return;
+
+    final hh = t.hourOfPeriod.toString().padLeft(2, '0');
+    final mm = t.minute.toString().padLeft(2, '0');
+    final ampm = t.period == DayPeriod.am ? "AM" : "PM";
+    final formatted = "$hh:$mm $ampm";
+
+    await _update(_a.copyWith(time: formatted));
+  }
+
+  Future<void> _setLocation() async {
+    final v = await _askText("Location", show(_a.location));
+    if (v == null) return;
+    await _update(_a.copyWith(location: v));
+  }
+
+  Future<void> _setQuantity() async {
+    final v = await _askText("Quantity", show(_a.quantity));
+    if (v == null) return;
+    await _update(_a.copyWith(quantity: v));
+  }
+
+  Future<void> _setWarehouseName() async {
+    final v = await _askText("Warehouse Name", show(_a.warehouseName));
+    if (v == null) return;
+    await _update(_a.copyWith(warehouseName: v));
+  }
+
+  Future<void> _setAdminName() async {
+    final v = await _askText("Admin Name", show(_a.adminName, empty: ''));
+    if (v == null) return;
+    await _update(_a.copyWith(adminName: v));
+  }
+
+  Future<void> _setAdminPhone() async {
+    final v = await _askText("Admin Phone", show(_a.adminPhone, empty: ''),
+        keyboard: TextInputType.phone);
+    if (v == null) return;
+    await _update(_a.copyWith(adminPhone: v));
+  }
+
+  Future<void> _setAdminEmail() async {
+    final v = await _askText("Admin Email", show(_a.adminEmail, empty: ''),
+        keyboard: TextInputType.emailAddress);
+    if (v == null) return;
+    await _update(_a.copyWith(adminEmail: v));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return Scaffold(
+      backgroundColor:
+          isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppHeader(
+              isDarkMode: isDarkMode,
+              onThemeChanged: (_) {},
+              profileRepo: profileRepo,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: const Text('← Back to Appointments',
+                            style: TextStyle(
+                                color: Color(0xFF4CAF50),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Appointment Details',
+                          style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: isDarkMode
+                              ? const Color(0xFF2d2d44)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                              color:
+                                  isDarkMode ? Colors.white12 : Colors.black12),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: _setWarehouseName,
+                                    child: Text(show(_a.warehouseName),
+                                        style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                      color: statusColor(_a.status),
+                                      borderRadius: BorderRadius.circular(999)),
+                                  child: Text(statusLabel(_a.status),
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _detailLine(isDarkMode, Icons.calendar_today,
+                                'Date', show(_a.date), 'Format: YYYY-MM-DD',
+                                onTap: _setDate),
+                            const SizedBox(height: 12),
+                            _detailLine(isDarkMode, Icons.access_time, 'Time',
+                                show(_a.time), 'Example: 10:00 AM / 10:00 PM',
+                                onTap: _setTime),
+                            const SizedBox(height: 12),
+                            _detailLine(
+                                isDarkMode,
+                                Icons.location_on,
+                                'Location',
+                                show(_a.location),
+                                'Example: City, Street...',
+                                onTap: _setLocation),
+                            const SizedBox(height: 12),
+                            _detailLine(isDarkMode, Icons.scale, 'Quantity',
+                                show(_a.quantity), 'Write with unit: 500 kg',
+                                onTap: _setQuantity),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: isDarkMode
+                              ? const Color(0xFF2d2d44)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                              color:
+                                  isDarkMode ? Colors.white12 : Colors.black12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Warehouse Administrator',
+                                style: TextStyle(
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 14),
+                            _adminLine(isDarkMode, Icons.person, 'Name',
+                                show(_a.adminName, empty: 'Tap to add name'),
+                                onTap: _setAdminName),
+                            const SizedBox(height: 12),
+                            _adminLine(isDarkMode, Icons.phone, 'Phone',
+                                show(_a.adminPhone, empty: 'Tap to add phone'),
+                                onTap: _setAdminPhone),
+                            const SizedBox(height: 12),
+                            _adminLine(isDarkMode, Icons.email, 'Email',
+                                show(_a.adminEmail, empty: 'Tap to add email'),
+                                onTap: _setAdminEmail),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: _canceling
+                              ? null
+                              : () async {
+                                  setState(() => _canceling = true);
+                                  try {
+                                    await widget.repo.cancelAppointment(_a.id);
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                '✅ Appointment canceled')));
+                                    Navigator.pop(context);
+                                  } catch (_) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('❌ Cancel failed')));
+                                  } finally {
+                                    if (mounted)
+                                      setState(() => _canceling = false);
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEA6B5A),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: Text(
+                              _canceling
+                                  ? 'Canceling...'
+                                  : 'Cancel Appointment',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailLine(
+    bool isDark,
+    IconData icon,
+    String label,
+    String value,
+    String hint, {
+    VoidCallback? onTap,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: const Color(0xFF4CAF50)),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 70,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(label,
+                style:
+                    TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+          ),
+        ),
+        Expanded(
+          child: FramedValueWithHint(
+            isDark: isDark,
+            value: value,
+            hint: hint,
+            onTap: onTap,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _adminLine(
+    bool isDark,
+    IconData icon,
+    String label,
+    String value, {
+    VoidCallback? onTap,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: const Color(0xFF4CAF50)),
+        const SizedBox(width: 10),
+        SizedBox(
+            width: 70,
+            child: Text(label,
+                style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black54))),
+        Expanded(
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color:
+                    isDark ? const Color(0xFF1C1C2E) : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(12),
+                border:
+                    Border.all(color: isDark ? Colors.white12 : Colors.black12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(value,
+                        style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                  if (onTap != null)
+                    Icon(Icons.edit,
+                        size: 16,
+                        color: isDark ? Colors.white54 : Colors.black45),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================
+// History Screen
+// ============================================
+class HistoryScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  final AppointmentsRepository repo;
+
+  const HistoryScreen(
+      {super.key,
+      required this.isDarkMode,
+      required this.onThemeChanged,
+      required this.repo});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  bool _loading = true;
+  List<Appointment> _items = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final list = await widget.repo.fetchHistory();
+    if (!mounted) return;
+    setState(() {
+      _items = list;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+
+    return Column(
+      children: [
+        AppHeader(
+          isDarkMode: isDarkMode,
+          onThemeChanged: widget.onThemeChanged,
+          profileRepo: profileRepo,
+        ),
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Appointment History',
+                            style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: textColor)),
+                        const SizedBox(height: 16),
+                        ..._items.map(
+                          (a) => Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? const Color(0xFF2d2d44)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                    color: isDarkMode
+                                        ? Colors.white12
+                                        : Colors.black12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(show(a.warehouseName),
+                                            style: TextStyle(
+                                                color: textColor,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 8),
+                                        decoration: BoxDecoration(
+                                            color: statusColor(
+                                                AppointmentStatus.completed),
+                                            borderRadius:
+                                                BorderRadius.circular(999)),
+                                        child: const Text('Completed',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Row(children: [
+                                    const Icon(Icons.calendar_today,
+                                        color: Color(0xFF4CAF50), size: 20),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: FramedValueWithHint(
+                                            isDark: isDarkMode,
+                                            value: show(a.date),
+                                            hint: 'Format: YYYY-MM-DD'))
+                                  ]),
+                                  const SizedBox(height: 10),
+                                  Row(children: [
+                                    const Icon(Icons.access_time,
+                                        color: Color(0xFF4CAF50), size: 20),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: FramedValueWithHint(
+                                            isDark: isDarkMode,
+                                            value: show(a.time),
+                                            hint:
+                                                'Example: 10:00 AM / 10:00 PM'))
+                                  ]),
+                                  const SizedBox(height: 10),
+                                  Row(children: [
+                                    const Icon(Icons.location_on,
+                                        color: Color(0xFF4CAF50), size: 20),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: FramedValueWithHint(
+                                            isDark: isDarkMode,
+                                            value: show(a.location),
+                                            hint: 'Example: City, Street...'))
+                                  ]),
+                                  const SizedBox(height: 10),
+                                  Row(children: [
+                                    const Icon(Icons.scale,
+                                        color: Color(0xFF4CAF50), size: 20),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: FramedValueWithHint(
+                                            isDark: isDarkMode,
+                                            value: show(a.quantity),
+                                            hint: 'Write with unit: 500 kg'))
+                                  ]),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================
+// Account Screen
+// ============================================
+class AccountScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  final ProfileRepository repo;
+
+  const AccountScreen(
+      {super.key,
+      required this.isDarkMode,
+      required this.onThemeChanged,
+      required this.repo});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  final _nameC = TextEditingController();
+  final _emailC = TextEditingController();
+  final _phoneC = TextEditingController();
+  final _farmC = TextEditingController();
+
+  bool _loading = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final p = await widget.repo.fetchProfile();
+    if (!mounted) return;
+
+    _nameC.text = (p?.fullName ?? '');
+    _emailC.text = (p?.email ?? '');
+    _phoneC.text = (p?.phone ?? '');
+    _farmC.text = (p?.farmName ?? '');
+
+    setState(() => _loading = false);
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await widget.repo.saveProfile(
+        FarmerProfile(
+          fullName: _nameC.text.trim(),
+          email: _emailC.text.trim(),
+          phone: _phoneC.text.trim(),
+          farmName: _farmC.text.trim(),
+        ),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('✅ Saved')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('❌ Save failed')));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameC.dispose();
+    _emailC.dispose();
+    _phoneC.dispose();
+    _farmC.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+    final titleColor = isDarkMode ? Colors.white : Colors.black;
+
+    return Column(
+      children: [
+        AppHeader(
+          isDarkMode: isDarkMode,
+          onThemeChanged: widget.onThemeChanged,
+          profileRepo: widget.repo,
+        ),
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Manage Account',
+                            style: TextStyle(
+                                color: titleColor,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF2d2d44)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: isDarkMode
+                                    ? Colors.white12
+                                    : Colors.black12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Profile Picture',
+                                  style: TextStyle(
+                                      color: titleColor,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 44,
+                                    backgroundColor: Colors.grey[300],
+                                    child: Text('100×100',
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            color: Colors.grey[700])),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  SizedBox(
+                                    height: 42,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                            title: const Text('Change Photo'),
+                                            content: const Text(
+                                                'هنا تربطي image_picker ولا upload من DB.'),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                  child: const Text('OK')),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFF2E7D32),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                      ),
+                                      child: const Text('Change Photo',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? const Color(0xFF2d2d44)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: isDarkMode
+                                    ? Colors.white12
+                                    : Colors.black12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Account Information',
+                                  style: TextStyle(
+                                      color: titleColor,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 14),
+                              _label('Full Name', isDarkMode),
+                              _input(isDarkMode, controller: _nameC),
+                              const SizedBox(height: 14),
+                              _label('Email', isDarkMode),
+                              _input(isDarkMode,
+                                  controller: _emailC,
+                                  keyboard: TextInputType.emailAddress),
+                              const SizedBox(height: 14),
+                              _label('Phone Number', isDarkMode),
+                              _input(isDarkMode,
+                                  controller: _phoneC,
+                                  keyboard: TextInputType.phone),
+                              const SizedBox(height: 14),
+                              _label('Farm Name', isDarkMode),
+                              _input(isDarkMode, controller: _farmC),
+                              const SizedBox(height: 18),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 46,
+                                child: ElevatedButton(
+                                  onPressed: _saving ? null : _save,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF9800),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  child: Text(
+                                      _saving ? 'Saving...' : 'Save Changes',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _label(String text, bool isDark) {
+    return Text(text,
+        style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.black87,
+            fontWeight: FontWeight.w700));
+  }
+
+  Widget _input(bool isDark,
+      {required TextEditingController controller,
+      TextInputType keyboard = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboard,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: isDark ? const Color(0xFF1C1C2E) : const Color(0xFFF5F5F5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFFF9800), width: 1.2),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,1218 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const AgriStoreApp());
+}
+
+class AgriStoreApp extends StatelessWidget {
+  const AgriStoreApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'AgriStore',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      home: const LoginScreen(),
+    );
+  }
+}
+
+// ============================================
+// Login Screen
+// ============================================
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool isDarkMode = true;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool obscurePassword = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                // Dark/Light Mode Toggle Button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isDarkMode = !isDarkMode),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF9800),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                // Logo and Title
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF9800),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.warehouse,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'AgriStore',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Welcome back to your warehouse',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Login Card
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF4CAF50), width: 2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Log In',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Enter your credentials to access your account',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      _label('Email', isDarkMode),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: emailController,
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          hintText: 'your.email@example.com',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38),
+                          filled: true,
+                          fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      _label('Password', isDarkMode),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: obscurePassword,
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          hintText: '••••••••',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38),
+                          filled: true,
+                          fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // Log In Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Log In Action
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF9800),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Log In',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RequestReaccessScreen(isDarkMode: isDarkMode),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Request Re-access',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF4CAF50),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode ? Colors.white60 : Colors.black54,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FarmerRegistrationScreen(isDarkMode: isDarkMode),
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                'Register as Farmer',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF4CAF50),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Text(
+                  'Demo credentials:',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Farmer: farmer@example.com',
+                  style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white70 : Colors.black54),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Warehouse Admin: warehouse@example.com',
+                  style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white70 : Colors.black54),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'System Admin: admin@example.com',
+                  style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white70 : Colors.black54),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+}
+
+// ============================================
+// Request Re-access Screen
+// ============================================
+class RequestReaccessScreen extends StatefulWidget {
+  final bool isDarkMode;
+  const RequestReaccessScreen({super.key, required this.isDarkMode});
+
+  @override
+  State<RequestReaccessScreen> createState() => _RequestReaccessScreenState();
+}
+
+class _RequestReaccessScreenState extends State<RequestReaccessScreen> {
+  late bool isDarkMode;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController reasonController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isDarkMode = !isDarkMode),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(color: Color(0xFFFF9800), shape: BoxShape.circle),
+                      child: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to Login',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Request Re-access',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Submit a request to regain access to your account',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      _label('Email Address', isDarkMode),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: emailController,
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          hintText: 'your.email@example.com',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38),
+                          filled: true,
+                          fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      _label('Reason for Request', isDarkMode),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: reasonController,
+                        maxLines: 6,
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          hintText: 'Please explain why you need to regain access...',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38),
+                          filled: true,
+                          fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Submit Request Action
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Submit Request',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    reasonController.dispose();
+    super.dispose();
+  }
+}
+
+// ============================================
+// Farmer Registration Screen (Step 1 of 3)
+// ============================================
+class FarmerRegistrationScreen extends StatefulWidget {
+  final bool isDarkMode;
+  const FarmerRegistrationScreen({Key? key, required this.isDarkMode}) : super(key: key);
+
+  @override
+  State<FarmerRegistrationScreen> createState() => _FarmerRegistrationScreenState();
+}
+
+class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
+  late bool isDarkMode;
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isDarkMode = !isDarkMode),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(color: Color(0xFFFF9800), shape: BoxShape.circle),
+                      child: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to Login',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Farmer Registration',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Step 1 of 3',
+                        style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white60 : Colors.black54),
+                      ),
+                      const SizedBox(height: 30),
+                      Text(
+                        'Personal Information',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      _label('First Name', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(firstNameController, isDarkMode),
+
+                      const SizedBox(height: 20),
+                      _label('Last Name', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(lastNameController, isDarkMode),
+
+                      const SizedBox(height: 20),
+                      _label('Email', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(emailController, isDarkMode),
+
+                      const SizedBox(height: 20),
+                      _label('Phone Number', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(phoneController, isDarkMode),
+
+                      const SizedBox(height: 30),
+
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: 140,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FarmerRegistrationStep2Screen(isDarkMode: isDarkMode),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF9800),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Next',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+}
+
+// ============================================
+// Farmer Registration Screen (Step 2 of 3)
+// ============================================
+class FarmerRegistrationStep2Screen extends StatefulWidget {
+  final bool isDarkMode;
+  const FarmerRegistrationStep2Screen({super.key, required this.isDarkMode});
+
+  @override
+  State<FarmerRegistrationStep2Screen> createState() => _FarmerRegistrationStep2ScreenState();
+}
+
+class _FarmerRegistrationStep2ScreenState extends State<FarmerRegistrationStep2Screen> {
+  late bool isDarkMode;
+
+  final TextEditingController farmNameController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isDarkMode = !isDarkMode),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(color: Color(0xFFFF9800), shape: BoxShape.circle),
+                      child: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Farmer Registration',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Step 2 of 3',
+                        style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white60 : Colors.black54),
+                      ),
+                      const SizedBox(height: 30),
+
+                      Text(
+                        'Farm Details',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      _label('Farm Name', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(farmNameController, isDarkMode),
+
+                      const SizedBox(height: 20),
+                      _label('Address', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(addressController, isDarkMode),
+
+                      const SizedBox(height: 20),
+                      _label('City', isDarkMode),
+                      const SizedBox(height: 8),
+                      _input(cityController, isDarkMode),
+
+                      const SizedBox(height: 30),
+
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4CAF50),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Back',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: 140,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FarmerRegistrationStep3Screen(isDarkMode: isDarkMode),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF9800),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Next',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    farmNameController.dispose();
+    addressController.dispose();
+    cityController.dispose();
+    super.dispose();
+  }
+}
+
+// ============================================
+// Farmer Registration Screen (Step 3 of 3) + Dock Name input
+// ============================================
+class FarmerRegistrationStep3Screen extends StatefulWidget {
+  final bool isDarkMode;
+  const FarmerRegistrationStep3Screen({super.key, required this.isDarkMode});
+
+  @override
+  State<FarmerRegistrationStep3Screen> createState() => _FarmerRegistrationStep3ScreenState();
+}
+
+class _FarmerRegistrationStep3ScreenState extends State<FarmerRegistrationStep3Screen> {
+  late bool isDarkMode;
+
+  final TextEditingController dockNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isDarkMode = !isDarkMode),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(color: Color(0xFFFF9800), shape: BoxShape.circle),
+                      child: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to Login',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF2E7D32),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF2d2d44) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Farmer Registration',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Step 3 of 3',
+                        style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white60 : Colors.black54),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      Text(
+                        'Dock Details',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      _label('Dock Name', isDarkMode),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: dockNameController,
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          hintText: 'Enter dock name',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38),
+                          filled: true,
+                          fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3CD),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Your registration will be reviewed by our team. You will receive an email notification once approved.',
+                          style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.4),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4CAF50),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Back',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: 180,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (dockNameController.text.trim().isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please enter dock name')),
+                                  );
+                                  return;
+                                }
+
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => RegistrationSubmittedScreen(isDarkMode: isDarkMode),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4CAF50),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Submit Registration',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    dockNameController.dispose();
+    super.dispose();
+  }
+}
+
+// ============================================
+// Registration Submitted Screen
+// ============================================
+class RegistrationSubmittedScreen extends StatefulWidget {
+  final bool isDarkMode;
+  const RegistrationSubmittedScreen({super.key, required this.isDarkMode});
+
+  @override
+  State<RegistrationSubmittedScreen> createState() => _RegistrationSubmittedScreenState();
+}
+
+class _RegistrationSubmittedScreenState extends State<RegistrationSubmittedScreen> {
+  late bool isDarkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFFFF8E7),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () => setState(() => isDarkMode = !isDarkMode),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(color: Color(0xFFFF9800), shape: BoxShape.circle),
+                    child: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.white, size: 28),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9800),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Registration Submitted',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Your registration is pending approval.',
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Back to Login',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// Small Helpers
+// ============================================
+Widget _label(String text, bool isDarkMode) {
+  return Text(
+    text,
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: isDarkMode ? Colors.white : Colors.black,
+    ),
+  );
+}
+
+Widget _input(TextEditingController controller, bool isDarkMode) {
+  return TextField(
+    controller: controller,
+    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+    decoration: InputDecoration(
+      filled: true,
+      fillColor: isDarkMode ? const Color(0xFF1a1a2e) : const Color(0xFFF5F5F5),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
+  );
+}

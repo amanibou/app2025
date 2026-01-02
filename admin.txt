@@ -1,0 +1,1383 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const SystemAdminApp());
+}
+
+/* ===========================
+   APP
+   =========================== */
+class SystemAdminApp extends StatefulWidget {
+  const SystemAdminApp({super.key});
+
+  @override
+  State<SystemAdminApp> createState() => _SystemAdminAppState();
+}
+
+class _SystemAdminAppState extends State<SystemAdminApp> {
+  bool isDarkMode = true;
+
+  void toggleTheme() => setState(() => isDarkMode = !isDarkMode);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'System Administration',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: SystemAdminMainScreen(
+        isDarkMode: isDarkMode,
+        onToggleTheme: toggleTheme,
+      ),
+    );
+  }
+}
+
+/* ===========================
+   MAIN SCREEN (Drawer + Pages)
+   =========================== */
+class SystemAdminMainScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final VoidCallback onToggleTheme;
+
+  const SystemAdminMainScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onToggleTheme,
+  });
+
+  @override
+  State<SystemAdminMainScreen> createState() => _SystemAdminMainScreenState();
+}
+
+class _SystemAdminMainScreenState extends State<SystemAdminMainScreen> {
+  String currentPage = 'Dashboard';
+
+  void _navigateToPage(String page) {
+    setState(() => currentPage = page);
+    Navigator.pop(context);
+  }
+
+  Widget _getCurrentPage() {
+    switch (currentPage) {
+      case 'Dashboard':
+        return DashboardPage(isDarkMode: widget.isDarkMode);
+      case 'Warehouses':
+        return WarehousesPage(isDarkMode: widget.isDarkMode);
+      case 'Administrators':
+        return AdministratorsPage(isDarkMode: widget.isDarkMode);
+      case 'Approve Farmers':
+        return ApproveFarmersPage(isDarkMode: widget.isDarkMode);
+      case 'Re-access Requests':
+        return ReaccessRequestsPage(isDarkMode: widget.isDarkMode);
+      default:
+        return DashboardPage(isDarkMode: widget.isDarkMode);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return Scaffold(
+      backgroundColor:
+          isDarkMode ? const Color(0xFF1C1C2E) : const Color(0xFFFFF8E7),
+      drawer: _buildDrawer(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(child: _getCurrentPage()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* ===========================
+     HEADER (moon icon + popup menu)
+     =========================== */
+  Widget _buildHeader() {
+    final isDarkMode = widget.isDarkMode;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3E50) : const Color(0xFF2E7D32),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Builder(
+                builder: (context) => GestureDetector(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: const Icon(Icons.menu, color: Colors.white, size: 28),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Text(
+                'System Administration',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              // ✅ Moon / Sun like screenshot (no orange circle)
+              IconButton(
+                onPressed: widget.onToggleTheme,
+                icon: Icon(
+                  isDarkMode
+                      ? Icons.nights_stay_outlined
+                      : Icons.wb_sunny_outlined,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 4),
+
+              // ✅ Profile/Logout menu like screenshot
+              PopupMenuButton<String>(
+                offset: const Offset(0, 55),
+                color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    // TODO: Navigate to profile page
+                  } else if (value == 'logout') {
+                    // TODO: Logout logic
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person,
+                            color: isDarkMode ? Colors.white : Colors.black),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Profile',
+                          style: TextStyle(
+                              color:
+                                  isDarkMode ? Colors.white : Colors.black),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text('Logout', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[300],
+                  child: Text(
+                    '100×100',
+                    style: TextStyle(fontSize: 8, color: Colors.grey[600]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /* ===========================
+     DRAWER
+     =========================== */
+  Widget _buildDrawer() {
+    final isDarkMode = widget.isDarkMode;
+
+    return Drawer(
+      backgroundColor: isDarkMode ? const Color(0xFF1C1C2E) : Colors.white,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            color:
+                isDarkMode ? const Color(0xFF2C3E50) : const Color(0xFF2E7D32),
+            child: SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9800),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.warehouse,
+                            color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'AgriStore',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close,
+                        color: Colors.white, size: 28),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildDrawerItem('Dashboard', Icons.dashboard,
+              currentPage == 'Dashboard'),
+          _buildDrawerItem('Warehouses', Icons.warehouse,
+              currentPage == 'Warehouses'),
+          _buildDrawerItem('Administrators', Icons.people,
+              currentPage == 'Administrators'),
+          _buildDrawerItem('Approve Farmers', Icons.person_add,
+              currentPage == 'Approve Farmers'),
+          _buildDrawerItem('Re-access Requests', Icons.description,
+              currentPage == 'Re-access Requests'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(String title, IconData icon, bool isSelected) {
+    final isDarkMode = widget.isDarkMode;
+
+    return Container(
+      color: isSelected ? const Color(0xFF4CAF50) : Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: isDarkMode ? Colors.white : Colors.black),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        onTap: () => _navigateToPage(title),
+      ),
+    );
+  }
+}
+
+/* ===========================
+   DASHBOARD
+   - Stat numbers empty (DB)
+   - Recent Activity: keep text, time empty
+   - System Alerts: keep text, count removed
+   =========================== */
+class DashboardPage extends StatelessWidget {
+  final bool isDarkMode;
+  const DashboardPage({super.key, required this.isDarkMode});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'System Dashboard',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ✅ values empty (DB)
+            _buildStatCard('Total Warehouses', '', Icons.warehouse,
+                const Color(0xFF4CAF50)),
+            const SizedBox(height: 16),
+            _buildStatCard('Warehouse Admins', '', Icons.people,
+                const Color(0xFF4CAF50)),
+            const SizedBox(height: 16),
+            _buildStatCard('Pending Farmers', '', Icons.person_add,
+                const Color(0xFFFF9800)),
+            const SizedBox(height: 16),
+            _buildStatCard('Re-access Requests', '', Icons.description,
+                const Color(0xFF2196F3)),
+
+            const SizedBox(height: 24),
+
+            // ✅ keep activity text, time empty
+            _panel(
+              title: 'Recent Activity',
+              children: [
+                _buildActivityItem('New warehouse added', ''),
+                const Divider(height: 24),
+                _buildActivityItem('Farmer registration approved', ''),
+                const Divider(height: 24),
+                _buildActivityItem('Admin account created', ''),
+                const Divider(height: 24),
+                _buildActivityItem('Re-access request processed', ''),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // ✅ keep alerts text, remove counts (5/3)
+            _panel(
+              title: 'System Alerts',
+              children: [
+                _buildAlertCard(
+                  'Pending Approvals',
+                  'Farmer registrations awaiting review',
+                  const Color(0xFF8D6E63),
+                ),
+                const SizedBox(height: 12),
+                _buildAlertCard(
+                  'Re-access Requests',
+                  'Users requesting account re-access',
+                  const Color(0xFF5C6BC0),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _panel({required String title, required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...children,
+      ]),
+    );
+  }
+
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: iconColor, width: 2),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value, // ✅ empty (DB)
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
+          ]),
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 32),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(String title, String time) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        Text(
+          time, // ✅ empty (DB)
+          style: TextStyle(
+            fontSize: 14,
+            color: isDarkMode ? Colors.white60 : Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAlertCard(String title, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration:
+          BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 14, color: Colors.white70),
+        ),
+      ]),
+    );
+  }
+}
+
+/* ===========================
+   MODELS
+   =========================== */
+class WarehouseModel {
+  String name;
+  String location;
+  String manager;
+  String capacity;
+  bool isActive;
+
+  WarehouseModel({
+    this.name = '',
+    this.location = '',
+    this.manager = '',
+    this.capacity = '',
+    this.isActive = true,
+  });
+}
+
+class AdminModel {
+  String name;
+  String email;
+  String phone;
+  String warehouse;
+  bool isActive;
+
+  AdminModel({
+    this.name = '',
+    this.email = '',
+    this.phone = '',
+    this.warehouse = '',
+    this.isActive = true,
+  });
+}
+
+class FarmerModel {
+  String name;
+  String email;
+  String phone;
+  String farm;
+  String size;
+  String crop;
+  String status; // pending / approved / rejected
+
+  FarmerModel({
+    this.name = '',
+    this.email = '',
+    this.phone = '',
+    this.farm = '',
+    this.size = '',
+    this.crop = '',
+    this.status = 'pending',
+  });
+}
+
+class ReaccessRequestModel {
+  String name;
+  String email;
+  String date;
+  String reason;
+  String status; // pending / approved / rejected
+
+  ReaccessRequestModel({
+    this.name = '',
+    this.email = '',
+    this.date = '',
+    this.reason = '',
+    this.status = 'pending',
+  });
+}
+
+/* ===========================
+   HELPERS
+   =========================== */
+void showMsg(BuildContext context, String msg) {
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+}
+
+TextStyle fieldStyle(
+  bool isDarkMode, {
+  double fontSize = 16,
+  FontWeight weight = FontWeight.normal,
+}) =>
+    TextStyle(
+      fontSize: fontSize,
+      fontWeight: weight,
+      color: isDarkMode ? Colors.white : Colors.black,
+    );
+
+InputDecoration noBorderHint(bool isDarkMode, String hint) => InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: isDarkMode ? Colors.white38 : Colors.black38,
+      ),
+      border: InputBorder.none,
+    );
+
+/* ===========================
+   WAREHOUSES PAGE (DB only)
+   =========================== */
+class WarehousesPage extends StatefulWidget {
+  final bool isDarkMode;
+  const WarehousesPage({super.key, required this.isDarkMode});
+
+  @override
+  State<WarehousesPage> createState() => _WarehousesPageState();
+}
+
+class _WarehousesPageState extends State<WarehousesPage> {
+  final List<WarehouseModel> warehouses = []; // ✅ DB only
+
+  void _addWarehouse() {
+    setState(() => warehouses.insert(0, WarehouseModel(isActive: true)));
+    showMsg(context, 'Warehouse added ✅');
+  }
+
+  void _saveWarehouse(int index) {
+    showMsg(context, 'Warehouse saved ✅');
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(
+              child: Text(
+                'Manage Warehouses',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _addWarehouse,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Add Warehouse',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF9800),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          ...List.generate(warehouses.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildWarehouseCard(warehouses[i], i, isDarkMode),
+            );
+          }),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildWarehouseCard(WarehouseModel w, int index, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(
+            child: TextFormField(
+              initialValue: w.name,
+              onChanged: (v) => w.name = v,
+              style: fieldStyle(isDarkMode,
+                  fontSize: 20, weight: FontWeight.bold),
+              decoration: noBorderHint(isDarkMode, 'Warehouse Name'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Row(children: [
+            Text(
+              w.isActive ? 'Active' : 'Inactive',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Switch(
+              value: w.isActive,
+              onChanged: (v) => setState(() => w.isActive = v),
+              activeColor: const Color(0xFF4CAF50),
+            ),
+          ]),
+        ]),
+        const SizedBox(height: 12),
+        _rowField(
+          isDarkMode: isDarkMode,
+          icon: Icons.location_on,
+          hint: 'Location',
+          initialValue: w.location,
+          onChanged: (v) => w.location = v,
+        ),
+        const SizedBox(height: 10),
+        _rowField(
+          isDarkMode: isDarkMode,
+          icon: Icons.person,
+          hint: 'Manager Name',
+          initialValue: w.manager,
+          onChanged: (v) => w.manager = v,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Capacity',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDarkMode ? Colors.white70 : Colors.black54,
+          ),
+        ),
+        TextFormField(
+          initialValue: w.capacity,
+          onChanged: (v) => w.capacity = v,
+          style: fieldStyle(isDarkMode, fontSize: 18, weight: FontWeight.bold),
+          decoration: noBorderHint(isDarkMode, 'Capacity'),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: () => _saveWarehouse(index),
+            icon: const Icon(Icons.save, color: Colors.white),
+            label: const Text(
+              'Save Warehouse',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _rowField({
+    required bool isDarkMode,
+    required IconData icon,
+    required String hint,
+    required String initialValue,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Row(children: [
+      Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+      const SizedBox(width: 12),
+      Expanded(
+        child: TextFormField(
+          initialValue: initialValue,
+          onChanged: onChanged,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, hint),
+        ),
+      ),
+    ]);
+  }
+}
+
+/* ===========================
+   ADMINISTRATORS PAGE (DB only)
+   =========================== */
+class AdministratorsPage extends StatefulWidget {
+  final bool isDarkMode;
+  const AdministratorsPage({super.key, required this.isDarkMode});
+
+  @override
+  State<AdministratorsPage> createState() => _AdministratorsPageState();
+}
+
+class _AdministratorsPageState extends State<AdministratorsPage> {
+  final List<AdminModel> admins = []; // ✅ DB only
+
+  void _addAdmin() {
+    setState(() => admins.insert(0, AdminModel(isActive: true)));
+    showMsg(context, 'Administrator added ✅');
+  }
+
+  void _saveAdmin(int index) {
+    showMsg(context, 'Administrator saved ✅');
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(
+              child: Text(
+                'Manage Warehouse Administrators',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _addAdmin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF9800),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: const Text(
+                'Add Administrator',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          ...List.generate(admins.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildAdminCard(admins[i], i, isDarkMode),
+            );
+          }),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildAdminCard(AdminModel a, int index, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(
+            child: TextFormField(
+              initialValue: a.name,
+              onChanged: (v) => a.name = v,
+              style: fieldStyle(isDarkMode,
+                  fontSize: 20, weight: FontWeight.bold),
+              decoration: noBorderHint(isDarkMode, 'Administrator Name'),
+            ),
+          ),
+          Row(children: [
+            Text(
+              a.isActive ? 'Active' : 'Inactive',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Switch(
+              value: a.isActive,
+              onChanged: (v) => setState(() => a.isActive = v),
+              activeColor: const Color(0xFF4CAF50),
+            ),
+          ]),
+        ]),
+        const SizedBox(height: 12),
+        _adminRow(
+          isDarkMode: isDarkMode,
+          icon: Icons.email,
+          hint: 'Email',
+          initialValue: a.email,
+          onChanged: (v) => a.email = v,
+        ),
+        const SizedBox(height: 10),
+        _adminRow(
+          isDarkMode: isDarkMode,
+          icon: Icons.phone,
+          hint: 'Phone',
+          initialValue: a.phone,
+          onChanged: (v) => a.phone = v,
+        ),
+        const SizedBox(height: 10),
+        _adminRow(
+          isDarkMode: isDarkMode,
+          icon: Icons.location_on,
+          hint: 'Warehouse',
+          initialValue: a.warehouse,
+          onChanged: (v) => a.warehouse = v,
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: () => _saveAdmin(index),
+            icon: const Icon(Icons.save, color: Colors.white),
+            label: const Text(
+              'Save Administrator',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _adminRow({
+    required bool isDarkMode,
+    required IconData icon,
+    required String hint,
+    required String initialValue,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Row(children: [
+      Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+      const SizedBox(width: 12),
+      Expanded(
+        child: TextFormField(
+          initialValue: initialValue,
+          onChanged: onChanged,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, hint),
+        ),
+      ),
+    ]);
+  }
+}
+
+/* ===========================
+   APPROVE FARMERS (DB only)
+   =========================== */
+class ApproveFarmersPage extends StatefulWidget {
+  final bool isDarkMode;
+  const ApproveFarmersPage({super.key, required this.isDarkMode});
+
+  @override
+  State<ApproveFarmersPage> createState() => _ApproveFarmersPageState();
+}
+
+class _ApproveFarmersPageState extends State<ApproveFarmersPage> {
+  final List<FarmerModel> farmers = []; // ✅ DB only
+
+  void _addFarmer() {
+    setState(() => farmers.insert(0, FarmerModel()));
+    showMsg(context, 'Farmer added ✅');
+  }
+
+  void _approve(int index) {
+    setState(() => farmers[index].status = 'approved');
+    showMsg(context, 'Farmer approved ✅');
+  }
+
+  void _reject(int index) {
+    setState(() => farmers[index].status = 'rejected');
+    showMsg(context, 'Farmer rejected ❌');
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'approved':
+        return const Color(0xFF4CAF50);
+      case 'rejected':
+        return const Color(0xFFEF5350);
+      default:
+        return const Color(0xFFFF9800);
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Pending';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(
+              child: Text(
+                'Approve Farmer Registrations',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _addFarmer,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Add Farmer',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF9800),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          ...List.generate(farmers.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildFarmerCard(farmers[i], i, isDarkMode),
+            );
+          }),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildFarmerCard(FarmerModel f, int index, bool isDarkMode) {
+    final statusColor = _statusColor(f.status);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: statusColor, width: 2),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(
+            'Farmer',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              _statusLabel(f.status),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 14),
+
+        TextFormField(
+          initialValue: f.name,
+          onChanged: (v) => f.name = v,
+          style: fieldStyle(isDarkMode, fontSize: 20, weight: FontWeight.bold),
+          decoration: noBorderHint(isDarkMode, 'Farmer Name'),
+        ),
+        const SizedBox(height: 12),
+
+        _iconField(isDarkMode, Icons.email, 'Email', f.email,
+            (v) => f.email = v),
+        const SizedBox(height: 10),
+        _iconField(isDarkMode, Icons.phone, 'Phone', f.phone,
+            (v) => f.phone = v),
+        const SizedBox(height: 10),
+        _iconField(isDarkMode, Icons.location_on, 'Farm', f.farm,
+            (v) => f.farm = v),
+
+        const SizedBox(height: 10),
+
+        TextFormField(
+          initialValue: f.size,
+          onChanged: (v) => f.size = v,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, 'Size'),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: f.crop,
+          onChanged: (v) => f.crop = v,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, 'Crop'),
+        ),
+
+        const SizedBox(height: 16),
+
+        Row(children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: f.status == 'approved' ? null : () => _approve(index),
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: const Text(
+                'Approve',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: f.status == 'rejected' ? null : () => _reject(index),
+              icon: const Icon(Icons.close, color: Colors.white),
+              label: const Text(
+                'Reject',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF5350),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _iconField(bool isDarkMode, IconData icon, String hint, String value,
+      ValueChanged<String> onChanged) {
+    return Row(children: [
+      Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+      const SizedBox(width: 12),
+      Expanded(
+        child: TextFormField(
+          initialValue: value,
+          onChanged: onChanged,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, hint),
+        ),
+      ),
+    ]);
+  }
+}
+
+/* ===========================
+   RE-ACCESS REQUESTS (DB only)
+   =========================== */
+class ReaccessRequestsPage extends StatefulWidget {
+  final bool isDarkMode;
+  const ReaccessRequestsPage({super.key, required this.isDarkMode});
+
+  @override
+  State<ReaccessRequestsPage> createState() => _ReaccessRequestsPageState();
+}
+
+class _ReaccessRequestsPageState extends State<ReaccessRequestsPage> {
+  final List<ReaccessRequestModel> requests = []; // ✅ DB only
+
+  void _addRequest() {
+    setState(() => requests.insert(0, ReaccessRequestModel()));
+    showMsg(context, 'Request added ✅');
+  }
+
+  void _approve(int index) {
+    setState(() => requests[index].status = 'approved');
+    showMsg(context, 'Request approved ✅');
+  }
+
+  void _reject(int index) {
+    setState(() => requests[index].status = 'rejected');
+    showMsg(context, 'Request rejected ❌');
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'approved':
+        return const Color(0xFF4CAF50);
+      case 'rejected':
+        return const Color(0xFFEF5350);
+      default:
+        return const Color(0xFFFF9800);
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Pending';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = widget.isDarkMode;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(
+              child: Text(
+                'Handle Re-access Requests',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _addRequest,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Add Request',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF9800),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          ...List.generate(requests.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildRequestCard(requests[i], i, isDarkMode),
+            );
+          }),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildRequestCard(ReaccessRequestModel r, int index, bool isDarkMode) {
+    final statusColor = _statusColor(r.status);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C3544) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: statusColor, width: 2),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(
+            'Request',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              _statusLabel(r.status),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 14),
+
+        TextFormField(
+          initialValue: r.name,
+          onChanged: (v) => r.name = v,
+          style: fieldStyle(isDarkMode, fontSize: 20, weight: FontWeight.bold),
+          decoration: noBorderHint(isDarkMode, 'User Name'),
+        ),
+        const SizedBox(height: 10),
+
+        _row(isDarkMode, Icons.email, 'Email', r.email, (v) => r.email = v),
+        const SizedBox(height: 10),
+
+        _row(isDarkMode, Icons.calendar_today, 'Date', r.date,
+            (v) => r.date = v),
+
+        const SizedBox(height: 12),
+
+        Text(
+          'Reason:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: r.reason,
+          onChanged: (v) => r.reason = v,
+          maxLines: 4,
+          style: fieldStyle(isDarkMode, fontSize: 14),
+          decoration: noBorderHint(isDarkMode, 'Reason'),
+        ),
+
+        const SizedBox(height: 16),
+
+        Row(children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: r.status == 'approved' ? null : () => _approve(index),
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: const Text(
+                'Approve',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: r.status == 'rejected' ? null : () => _reject(index),
+              icon: const Icon(Icons.close, color: Colors.white),
+              label: const Text(
+                'Reject',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF5350),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _row(bool isDarkMode, IconData icon, String hint, String value,
+      ValueChanged<String> onChanged) {
+    return Row(children: [
+      Icon(icon, color: const Color(0xFF4CAF50), size: 20),
+      const SizedBox(width: 12),
+      Expanded(
+        child: TextFormField(
+          initialValue: value,
+          onChanged: onChanged,
+          style: fieldStyle(isDarkMode),
+          decoration: noBorderHint(isDarkMode, hint),
+        ),
+      ),
+    ]);
+  }
+}
